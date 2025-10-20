@@ -1,0 +1,69 @@
+user  nginx;
+worker_processes  auto;
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    tcp_nopush      on;
+    tcp_nodelay     on;
+    keepalive_timeout  65;
+    
+    # POST 上传大小限制
+    client_max_body_size ${POST_SIZE_LIMIT}m;
+    client_body_buffer_size 128k;
+    
+    # 禁用缓冲以提高上传速度测试准确性
+    client_body_in_file_only off;
+    client_body_in_single_buffer on;
+
+    server {
+        listen       80;
+        server_name  localhost;
+
+        # 默认拒绝所有请求
+        location / {
+            return 403 "Forbidden\n";
+            add_header Content-Type text/plain;
+        }
+
+        # 自定义测速 URL
+        location = /${CUSTOM_URL} {
+            # GET 请求：下载测速
+            if ($request_method = GET) {
+                # 返回指定大小的随机数据
+                return 200;
+            }
+
+            # POST 请求：上传测速
+            if ($request_method = POST) {
+                # 接收上传数据但不保存
+                # Nginx 会自动接收 POST 数据到内存/临时文件
+                return 200 "Upload completed\n";
+            }
+
+            # 其他方法不允许
+            return 405 "Method Not Allowed\n";
+        }
+
+        # 健康检查端点
+        location = /health {
+            access_log off;
+            return 200 "OK\n";
+            add_header Content-Type text/plain;
+        }
+    }
+}
