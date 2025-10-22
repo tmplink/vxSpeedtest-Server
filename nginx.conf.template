@@ -40,22 +40,23 @@ http {
             add_header Content-Type text/plain;
         }
 
-        # 自定义测速 URL - GET 请求：下载测速
+        # 自定义测速 URL - GET 请求：下载测速文件
         location = /${CUSTOM_URL} {
             limit_except GET POST {
                 deny all;
             }
             
-            # GET 请求会由 entrypoint.sh 替换为文件下载配置
             # POST 请求：上传测速
             if ($request_method = POST) {
-                # 接收上传数据但不保存
-                # Nginx 会自动接收 POST 数据到内存/临时文件
                 return 200 "Upload completed\n";
             }
             
-            # GET 请求默认行为（将被替换）
-            return 200;
+            # GET 请求：下载测速文件
+            root /usr/share/nginx/html;
+            try_files /testfile =404;
+            add_header Content-Type application/octet-stream;
+            add_header Content-Disposition "attachment; filename=testfile";
+            add_header Cache-Control "no-cache, no-store, must-revalidate";
         }
 
         # 健康检查端点
