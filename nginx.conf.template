@@ -40,23 +40,22 @@ http {
             add_header Content-Type text/plain;
         }
 
-        # 自定义测速 URL
+        # 自定义测速 URL - GET 请求：下载测速
         location = /${CUSTOM_URL} {
-            # GET 请求：下载测速
-            if ($request_method = GET) {
-                # 返回指定大小的随机数据
-                return 200;
+            limit_except GET POST {
+                deny all;
             }
-
+            
+            # GET 请求会由 entrypoint.sh 替换为文件下载配置
             # POST 请求：上传测速
             if ($request_method = POST) {
                 # 接收上传数据但不保存
                 # Nginx 会自动接收 POST 数据到内存/临时文件
                 return 200 "Upload completed\n";
             }
-
-            # 其他方法不允许
-            return 405 "Method Not Allowed\n";
+            
+            # GET 请求默认行为（将被替换）
+            return 200;
         }
 
         # 健康检查端点

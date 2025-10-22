@@ -14,8 +14,8 @@ echo "Generating ${DOWNLOAD_SIZE}MB test file..."
 /generate_data.sh ${DOWNLOAD_SIZE} /usr/share/nginx/html/testfile
 
 # 在临时配置中添加下载文件的配置
-# 找到 location = /${CUSTOM_URL} 块，在 GET 请求部分添加文件返回
-sed -i "s|return 200;|root /usr/share/nginx/html;\ntry_files /testfile =404;\nadd_header Content-Type application/octet-stream;\nadd_header Content-Disposition \"attachment; filename=testfile\";\nadd_header Cache-Control \"no-cache, no-store, must-revalidate\";|g" /etc/nginx/nginx.conf.tmp
+# 找到 location = /${CUSTOM_URL} 块，在 GET 请求默认行为位置添加文件返回
+sed -i "s|# GET 请求默认行为（将被替换）\s*return 200;|root /usr/share/nginx/html;\n            try_files /testfile =404;\n            add_header Content-Type application/octet-stream;\n            add_header Content-Disposition \"attachment; filename=testfile\";\n            add_header Cache-Control \"no-cache, no-store, must-revalidate\";|g" /etc/nginx/nginx.conf.tmp
 
 # 移动最终配置
 mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf
