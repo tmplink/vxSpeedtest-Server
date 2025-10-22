@@ -28,8 +28,8 @@ cd vxSpeedtest-Server
 ```yaml
 environment:
   - CUSTOM_URL=speedtest      # Custom URL path
-  - DOWNLOAD_SIZE=100         # Download file size (MB)
-  - POST_SIZE_LIMIT=1000      # Upload size limit (MB)
+  - DOWNLOAD_SIZE=128         # Download file size (MB)
+  - POST_SIZE_LIMIT=128       # Upload size limit (MB)
 ```
 
 3. Start the service:
@@ -61,9 +61,9 @@ docker build -t vxspeedtest-server .
 docker run -d \
   --name vxspeedtest \
   -p 8080:80 \
-  -e CUSTOM_URL=abvcd5 \
-  -e DOWNLOAD_SIZE=100 \
-  -e POST_SIZE_LIMIT=1000 \
+  -e CUSTOM_URL=speedtest \
+  -e DOWNLOAD_SIZE=128 \
+  -e POST_SIZE_LIMIT=128 \
   vxspeedtest-server
 ```
 
@@ -72,8 +72,8 @@ docker run -d \
 | Environment Variable | Description | Default | Example |
 |---------|------|--------|------|
 | `CUSTOM_URL` | Custom URL path (without leading slash) | `speedtest` | `abvcd5`, `test123` |
-| `DOWNLOAD_SIZE` | Download speed test file size (MB) | `100` | `50`, `500`, `1000` |
-| `POST_SIZE_LIMIT` | POST upload size limit (MB) | `1000` | `100`, `2000`, `5000` |
+| `DOWNLOAD_SIZE` | Download speed test file size (MB) | `100` | `1`, `8`, `128`, `512`, `1024` |
+| `POST_SIZE_LIMIT` | POST upload size limit (MB) | `1000` | `1`, `8`, `128`, `512`, `1024` |
 
 ## Usage Examples
 
@@ -81,13 +81,13 @@ docker run -d \
 
 ```bash
 # Test download speed with curl
-curl -o /dev/null http://your-domain.com/abvcd5
+curl -o /dev/null http://your-domain.com:8080/speedtest
 
 # Test download speed with wget
-wget -O /dev/null http://your-domain.com/abvcd5
+wget -O /dev/null http://your-domain.com:8080/speedtest
 
 # Show download progress and speed
-curl -# http://your-domain.com/abvcd5 > /dev/null
+curl -# http://your-domain.com:8080/speedtest > /dev/null
 ```
 
 ### 2. Upload Speed Test
@@ -97,7 +97,7 @@ curl -# http://your-domain.com/abvcd5 > /dev/null
 dd if=/dev/zero of=test.bin bs=1M count=100
 
 # Upload speed test
-curl -X POST http://your-domain.com/abvcd5 \
+curl -X POST http://your-domain.com:8080/speedtest \
   -H "Content-Type: application/octet-stream" \
   --data-binary "@test.bin" \
   -w "\nUpload Speed: %{speed_upload} bytes/sec\n"
@@ -109,10 +109,10 @@ Use this server as a custom speed test node with various speed test tools:
 
 ```bash
 # Download test
-time curl -o /dev/null -s http://your-domain.com/abvcd5
+time curl -o /dev/null -s http://your-domain.com:8080/speedtest
 
 # Upload test
-time curl -X POST http://your-domain.com/abvcd5 \
+time curl -X POST http://your-domain.com:8080/speedtest \
   --data-binary "@test.bin" \
   -s -o /dev/null
 ```

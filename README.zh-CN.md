@@ -28,8 +28,8 @@ cd vxSpeedtest-Server
 ```yaml
 environment:
   - CUSTOM_URL=speedtest      # 自定义 URL 路径
-  - DOWNLOAD_SIZE=100         # 下载文件大小（MB）
-  - POST_SIZE_LIMIT=1000      # 上传大小限制（MB）
+  - DOWNLOAD_SIZE=128         # 下载文件大小（MB）
+  - POST_SIZE_LIMIT=128       # 上传大小限制（MB）
 ```
 
 3. 启动服务：
@@ -61,9 +61,9 @@ docker build -t vxspeedtest-server .
 docker run -d \
   --name vxspeedtest \
   -p 8080:80 \
-  -e CUSTOM_URL=abvcd5 \
-  -e DOWNLOAD_SIZE=100 \
-  -e POST_SIZE_LIMIT=1000 \
+  -e CUSTOM_URL=speedtest \
+  -e DOWNLOAD_SIZE=128 \
+  -e POST_SIZE_LIMIT=128 \
   vxspeedtest-server
 ```
 
@@ -72,8 +72,8 @@ docker run -d \
 | 环境变量 | 说明 | 默认值 | 示例 |
 |---------|------|--------|------|
 | `CUSTOM_URL` | 自定义 URL 路径（不含前导斜杠） | `speedtest` | `abvcd5`, `test123` |
-| `DOWNLOAD_SIZE` | 下载测速文件大小（MB） | `100` | `50`, `500`, `1000` |
-| `POST_SIZE_LIMIT` | POST 上传大小限制（MB） | `1000` | `100`, `2000`, `5000` |
+| `DOWNLOAD_SIZE` | 下载测速文件大小（MB） | `100` | `1`, `8`, `128`, `512`, `1024` |
+| `POST_SIZE_LIMIT` | POST 上传大小限制（MB） | `1000` | `1`, `8`, `128`, `512`, `1024` |
 
 ## 使用示例
 
@@ -81,13 +81,13 @@ docker run -d \
 
 ```bash
 # 使用 curl 测试下载速度
-curl -o /dev/null http://your-domain.com/abvcd5
+curl -o /dev/null http://your-domain.com:8080/speedtest
 
 # 使用 wget 测试下载速度
-wget -O /dev/null http://your-domain.com/abvcd5
+wget -O /dev/null http://your-domain.com:8080/speedtest
 
 # 显示下载进度和速度
-curl -# http://your-domain.com/abvcd5 > /dev/null
+curl -# http://your-domain.com:8080/speedtest > /dev/null
 ```
 
 ### 2. 上传测速
@@ -97,7 +97,7 @@ curl -# http://your-domain.com/abvcd5 > /dev/null
 dd if=/dev/zero of=test.bin bs=1M count=100
 
 # 上传测速
-curl -X POST http://your-domain.com/abvcd5 \
+curl -X POST http://your-domain.com:8080/speedtest \
   -H "Content-Type: application/octet-stream" \
   --data-binary "@test.bin" \
   -w "\nUpload Speed: %{speed_upload} bytes/sec\n"
@@ -109,10 +109,10 @@ curl -X POST http://your-domain.com/abvcd5 \
 
 ```bash
 # 下载测试
-time curl -o /dev/null -s http://your-domain.com/abvcd5
+time curl -o /dev/null -s http://your-domain.com:8080/speedtest
 
 # 上传测试
-time curl -X POST http://your-domain.com/abvcd5 \
+time curl -X POST http://your-domain.com:8080/speedtest \
   --data-binary "@test.bin" \
   -s -o /dev/null
 ```
