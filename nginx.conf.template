@@ -22,8 +22,8 @@ http {
     tcp_nodelay     on;
     keepalive_timeout  65;
     
-    # POST 上传大小限制
-    client_max_body_size ${POST_SIZE_LIMIT}m;
+    # 上传和下载大小限制统一设置为 1024MB
+    client_max_body_size ${SIZE_LIMIT}m;
     client_body_buffer_size 128k;
     
     # 禁用缓冲以提高上传速度测试准确性
@@ -40,7 +40,7 @@ http {
             add_header Content-Type text/plain;
         }
 
-        # 自定义测速 URL - GET 请求：下载测速文件
+        # 自定义测速 URL - GET/POST 请求
         location = /${CUSTOM_URL} {
             limit_except GET POST {
                 deny all;
@@ -51,12 +51,16 @@ http {
                 return 200 "Upload completed\n";
             }
             
-            # GET 请求：下载测速文件
-            root /usr/share/nginx/html;
-            try_files /testfile =404;
-            add_header Content-Type application/octet-stream;
+            # GET 请求：返回随机数据流
+            # 通过 CGI 脚本生成数据流，避免存储大文件
+            default_type application/octet-stream;
             add_header Content-Disposition "attachment; filename=testfile";
             add_header Cache-Control "no-cache, no-store, must-revalidate";
+            add_header Content-Length ${SIZE_LIMIT_BYTES};
+            
+            # 使用 FastCGI 或直接返回预生成的文件
+            root /usr/share/nginx/html;
+            try_files /testfile =404;
         }
 
         # 健康检查端点

@@ -6,15 +6,14 @@ RUN apk add --no-cache bash
 # 复制配置模板和启动脚本
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 COPY entrypoint.sh /entrypoint.sh
-COPY generate_data.sh /generate_data.sh
+COPY stream_data.sh /stream_data.sh
 
 # 设置脚本执行权限
-RUN chmod +x /entrypoint.sh /generate_data.sh
+RUN chmod +x /entrypoint.sh /stream_data.sh
 
 # 设置默认环境变量
 ENV CUSTOM_URL=speedtest \
-    DOWNLOAD_SIZE=100 \
-    POST_SIZE_LIMIT=1000
+    SIZE_LIMIT=1025
 
 # 暴露端口
 EXPOSE 80

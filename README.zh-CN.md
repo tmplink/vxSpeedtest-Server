@@ -8,8 +8,8 @@
 
 ✅ **纯 Nginx 实现** - 无需 PHP、Python 等脚本语言  
 ✅ **自定义 URL** - 设置专属测速路径，其他路径返回 403  
-✅ **GET 下载测速** - 可配置下载文件大小（MB）  
-✅ **POST 上传测速** - 可配置上传大小限制（MB）  
+✅ **GET 下载测速** - 使用稀疏文件技术，无需占用实际存储空间  
+✅ **POST 上传测速** - 统一大小限制，简化配置  
 ✅ **Docker 部署** - 一键启动，开箱即用  
 ✅ **安全防护** - 只允许访问指定路径，其他请求一律拒绝  
 ✅ **健康检查** - 内置健康检查端点  
@@ -28,8 +28,7 @@ cd vxSpeedtest-Server
 ```yaml
 environment:
   - CUSTOM_URL=speedtest      # 自定义 URL 路径
-  - DOWNLOAD_SIZE=128         # 下载文件大小（MB）
-  - POST_SIZE_LIMIT=128       # 上传大小限制（MB）
+  - SIZE_LIMIT=1024           # 上传和下载大小限制（MB）
 ```
 
 3. 启动服务：
@@ -62,8 +61,7 @@ docker run -d \
   --name vxspeedtest \
   -p 8080:80 \
   -e CUSTOM_URL=speedtest \
-  -e DOWNLOAD_SIZE=128 \
-  -e POST_SIZE_LIMIT=128 \
+  -e SIZE_LIMIT=1024 \
   vxspeedtest-server
 ```
 
@@ -72,8 +70,9 @@ docker run -d \
 | 环境变量 | 说明 | 默认值 | 示例 |
 |---------|------|--------|------|
 | `CUSTOM_URL` | 自定义 URL 路径（不含前导斜杠） | `speedtest` | `abvcd5`, `test123` |
-| `DOWNLOAD_SIZE` | 下载测速文件大小（MB） | `100` | `1`, `8`, `128`, `512`, `1024` |
-| `POST_SIZE_LIMIT` | POST 上传大小限制（MB） | `1000` | `1`, `8`, `128`, `512`, `1024` |
+| `SIZE_LIMIT` | 上传和下载大小限制（MB） | `1025` | `512`, `1024`, `2048` |
+
+**注意**：下载测速文件使用稀疏文件技术，不会占用实际磁盘空间，文件大小由 `SIZE_LIMIT` 统一控制。
 
 ## 使用示例
 
@@ -183,10 +182,13 @@ ls -lh /usr/share/nginx/html/testfile
 A: 检查 `CUSTOM_URL` 环境变量是否正确设置，不要包含前导斜杠 `/`。
 
 **Q: 上传失败，提示文件太大？**  
-A: 增加 `POST_SIZE_LIMIT` 环境变量的值。
+A: 增加 `SIZE_LIMIT` 环境变量的值。
 
 **Q: 下载速度不准确？**  
-A: 确保服务器带宽充足，可以增加 `DOWNLOAD_SIZE` 以获得更准确的测速结果。
+A: 确保服务器带宽充足，稀疏文件技术不会影响测速准确性。
+
+**Q: 测速文件实际占用多少磁盘空间？**  
+A: 使用稀疏文件技术，实际占用空间接近 0，但文件大小显示为 `SIZE_LIMIT` 设定的值。
 
 ## 性能优化
 
@@ -194,6 +196,7 @@ A: 确保服务器带宽充足，可以增加 `DOWNLOAD_SIZE` 以获得更准确
 - 使用 `sendfile`、`tcp_nopush`、`tcp_nodelay` 优化传输性能
 - 禁用不必要的缓冲以提高测速准确性
 - Worker 进程数自动适配 CPU 核心数
+- 使用稀疏文件技术，不占用实际磁盘空间，启动速度快
 
 ## 技术架构
 

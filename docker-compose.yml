@@ -12,11 +12,8 @@ services:
       # 例如: speedtest, test123, abvcd5
       - CUSTOM_URL=speedtest
       
-      # 下载测速文件大小（单位：MB）
-      - DOWNLOAD_SIZE=100
-      
-      # POST 上传大小限制（单位：MB）
-      - POST_SIZE_LIMIT=1000
+      # 上传和下载大小限制（单位：MB）
+      - SIZE_LIMIT=1025
     
     # 可选：限制容器资源使用
     # deploy:

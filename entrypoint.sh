@@ -3,20 +3,26 @@ set -e
 
 echo "=== vxSpeedtest Server Starting ==="
 echo "CUSTOM_URL: ${CUSTOM_URL}"
-echo "DOWNLOAD_SIZE: ${DOWNLOAD_SIZE} MB"
-echo "POST_SIZE_LIMIT: ${POST_SIZE_LIMIT} MB"
+echo "SIZE_LIMIT: ${SIZE_LIMIT} MB"
+
+# 计算字节数（MB 转 Bytes）
+SIZE_LIMIT_BYTES=$((SIZE_LIMIT * 1024 * 1024))
 
 # 替换 nginx 配置模板中的环境变量
-envsubst '${CUSTOM_URL} ${POST_SIZE_LIMIT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+export SIZE_LIMIT_BYTES
+envsubst '${CUSTOM_URL} ${SIZE_LIMIT} ${SIZE_LIMIT_BYTES}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# 生成指定大小的随机数据文件用于下载测速
-echo "Generating ${DOWNLOAD_SIZE}MB test file..."
-/generate_data.sh ${DOWNLOAD_SIZE} /usr/share/nginx/html/testfile
+# 创建指向 /dev/zero 的符号链接，用于动态生成数据
+# 或者创建一个空的稀疏文件
+echo "Creating ${SIZE_LIMIT}MB sparse test file..."
+mkdir -p /usr/share/nginx/html
+dd if=/dev/zero of=/usr/share/nginx/html/testfile bs=1M count=0 seek=${SIZE_LIMIT} 2>/dev/null
+chmod 644 /usr/share/nginx/html/testfile
 
 echo "Configuration completed!"
 echo "Access URL: http://your-domain/${CUSTOM_URL}"
-echo "  - GET  : Download ${DOWNLOAD_SIZE}MB file for speed test"
-echo "  - POST : Upload up to ${POST_SIZE_LIMIT}MB for speed test"
+echo "  - GET  : Download ${SIZE_LIMIT}MB data stream"
+echo "  - POST : Upload up to ${SIZE_LIMIT}MB for speed test"
 echo "=================================="
 
 # 测试配置

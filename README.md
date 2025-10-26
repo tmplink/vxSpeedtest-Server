@@ -8,8 +8,8 @@ A pure Nginx-based network speed test server that supports custom URLs, download
 
 ✅ **Pure Nginx Implementation** - No PHP, Python, or other scripting languages required  
 ✅ **Custom URL** - Set exclusive speed test paths, other paths return 403  
-✅ **GET Download Speed Test** - Configurable download file size (MB)  
-✅ **POST Upload Speed Test** - Configurable upload size limit (MB)  
+✅ **GET Download Speed Test** - Uses sparse file technology, no actual storage space required  
+✅ **POST Upload Speed Test** - Unified size limit, simplified configuration  
 ✅ **Docker Deployment** - One-click startup, ready to use  
 ✅ **Security Protection** - Only allows access to specified paths, all other requests are rejected  
 ✅ **Health Check** - Built-in health check endpoint  
@@ -28,8 +28,7 @@ cd vxSpeedtest-Server
 ```yaml
 environment:
   - CUSTOM_URL=speedtest      # Custom URL path
-  - DOWNLOAD_SIZE=128         # Download file size (MB)
-  - POST_SIZE_LIMIT=128       # Upload size limit (MB)
+  - SIZE_LIMIT=1024           # Upload and download size limit (MB)
 ```
 
 3. Start the service:
@@ -62,8 +61,7 @@ docker run -d \
   --name vxspeedtest \
   -p 8080:80 \
   -e CUSTOM_URL=speedtest \
-  -e DOWNLOAD_SIZE=128 \
-  -e POST_SIZE_LIMIT=128 \
+  -e SIZE_LIMIT=1024 \
   vxspeedtest-server
 ```
 
@@ -72,8 +70,9 @@ docker run -d \
 | Environment Variable | Description | Default | Example |
 |---------|------|--------|------|
 | `CUSTOM_URL` | Custom URL path (without leading slash) | `speedtest` | `abvcd5`, `test123` |
-| `DOWNLOAD_SIZE` | Download speed test file size (MB) | `100` | `1`, `8`, `128`, `512`, `1024` |
-| `POST_SIZE_LIMIT` | POST upload size limit (MB) | `1000` | `1`, `8`, `128`, `512`, `1024` |
+| `SIZE_LIMIT` | Upload and download size limit (MB) | `1025` | `512`, `1024`, `2048` |
+
+**Note**: Download speed test file uses sparse file technology, which does not occupy actual disk space. File size is controlled by `SIZE_LIMIT`.
 
 ## Usage Examples
 
@@ -183,10 +182,13 @@ ls -lh /usr/share/nginx/html/testfile
 A: Check if the `CUSTOM_URL` environment variable is set correctly, do not include leading slash `/`.
 
 **Q: Upload fails with file too large error?**  
-A: Increase the value of the `POST_SIZE_LIMIT` environment variable.
+A: Increase the value of the `SIZE_LIMIT` environment variable.
 
 **Q: Download speed is inaccurate?**  
-A: Ensure sufficient server bandwidth, you can increase `DOWNLOAD_SIZE` for more accurate speed test results.
+A: Ensure sufficient server bandwidth. Sparse file technology does not affect speed test accuracy.
+
+**Q: How much disk space does the speed test file actually occupy?**  
+A: Using sparse file technology, actual space usage is close to 0, but the file size shows the value set by `SIZE_LIMIT`.
 
 ## Performance Optimization
 
@@ -194,6 +196,7 @@ A: Ensure sufficient server bandwidth, you can increase `DOWNLOAD_SIZE` for more
 - Uses `sendfile`, `tcp_nopush`, `tcp_nodelay` to optimize transfer performance
 - Disables unnecessary buffering to improve speed test accuracy
 - Worker process count automatically adapts to CPU cores
+- Uses sparse file technology, no actual disk space occupied, fast startup
 
 ## Technical Architecture
 
